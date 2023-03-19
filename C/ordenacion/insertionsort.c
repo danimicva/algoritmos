@@ -9,7 +9,7 @@ long insertionSort(int *lista, int tam){
     j = i;
     while(j > 0 && lista[j-1] > lista[j]){
       comp++;
-      swapIS(&lista[j-1], &lista[j]);
+      swap(lista, j-1, j);
       j--;
     }
   }

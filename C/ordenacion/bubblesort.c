@@ -1,6 +1,6 @@
 #include "bubblesort.h"
 
-long bubbleSort(Lista *lista){
+long bubbleSort(int *lista, int tam){
 
   int i, j;
   long comp = 0;

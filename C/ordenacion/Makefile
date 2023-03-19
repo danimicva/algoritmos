@@ -1,17 +1,11 @@
 CC=gcc
-CFLAGS=-Wall
+CFLAGS=-Wall -std=gnu99
 SOURCES=main.c sort.c bubblesort.c mergesort.c insertionsort.c lista.c
-OBJECTS=$(SOURCES:.c=.o)
 SALIDA=salida.csv
-EXECUTABLE=sort
+EXECUTABLE=main
 
-all: $(SOURCES) $(EXECUTABLE) clean_part
-    
-$(EXECUTABLE): $(OBJECTS) 
-	$(CC) $(LDFLAGS) $(OBJECTS) -o $@
-
-.o:
-	$(CC) $(CFLAGS) $< -o $@
+all:    
+	$(CC)  $(CFLAGS) $(SOURCES) -o $(EXECUTABLE)
 
 clean_part:
 	rm -f *.o

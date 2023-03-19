@@ -4,6 +4,6 @@
 #include <stdio.h>
 #include "sort.h"
 
-long bubbleSort(Lista lista);
+long bubbleSort(int *lista, int tam);
 
 #endif

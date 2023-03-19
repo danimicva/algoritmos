@@ -1,109 +1,78 @@
 #include "sort.h"
 
-Ejecucion *ejecutaAlgoritmoMucho(int tamInicial, int tamFinal, int intervalo){
+int ejecutaAlgoritmos(int tamanoLista, Ejecucion *ejs);
+int ejecutaMergeSort(int *lista, int tam, Ejecucion *ejecucion);
+int ejecutaBubbleSort(int *lista, int tam, Ejecucion *ejecucion);
+int ejecutaInsertionSort(int *lista, int tam, Ejecucion *ejecucion);
 
-  int i, j, k;
-  int nEjs;
+Ejecucion *ejecutaAlgoritmoMucho(int tamInicial, int intervalo, int nEjecuciones){
+
   Ejecucion *ejs;
-  Ejecucion *temp;
 
-  nEjs = tamFinal - tamInicial;
-
-  ejs = (Ejecucion *) malloc(sizeof(Ejecucion) * N_ALGORITMOS * nEjs);
+  ejs = (Ejecucion *) malloc(sizeof(Ejecucion) * N_ALGORITMOS * nEjecuciones);
   if(ejs == NULL){
     printf("Error reservando memoria para las ejecuciones.\n");
     return NULL;
   }
  
-  for(i = tamInicial, j = 0; i <= tamFinal; i += intervalo, j++){
-
-  temp = ejecutaAlgoritmos(i);
-    if(temp == NULL){
-      free(ejs);
+  for(int i = 0, tam = tamInicial, nEj = 0; i < nEjecuciones; i ++, tam += intervalo, nEj += N_ALGORITMOS){
+    if(ejecutaAlgoritmos(tam, &ejs[nEj])){
       printf("Error ejecutando algoritmos para tamaño: %d\n", i);
       return NULL;
     }
-
-    for(k = 0; k < N_ALGORITMOS; k++){
-      ejs[(j * N_ALGORITMOS) + k] = temp[k];
-    }
-    free(temp);
   }
 
   return ejs;
 
 }
 
-Ejecucion *ejecutaAlgoritmos(int tamanoLista){
+int ejecutaAlgoritmos(int tamanoLista, Ejecucion *ejs){
 
   int *listaOrig;
   int *listaCopia;
-  Ejecucion *ejs;
-  Ejecucion *e;
-
-  ejs = (Ejecucion *) malloc(sizeof(Ejecucion) * N_ALGORITMOS);
-  if(ejs == NULL){
-    printf("Error alojando memoria.\n");
-    return NULL;
-  }
+  
 
   listaOrig = generaLista(tamanoLista);
   listaCopia = generaLista(tamanoLista);
   if(listaOrig == NULL || listaCopia == NULL){
     printf("Error generando las listas.\n");
-    return NULL;
+    return -1;
   }
 
- 
   copiaLista(listaOrig, listaCopia, tamanoLista);
-  e = ejecutaMergeSort(listaCopia, tamanoLista);
-  if(e == NULL){
+  if(ejecutaMergeSort(listaCopia, tamanoLista, &ejs[0])){
     free(listaOrig);
     free(listaCopia);
     printf("Error ejecutando mergesort.\n");
-    return NULL;
+    return -1;
   }
-  ejs[0] = *e;
-  printf("%15s: %10d %20ldns %20ld comp. %s\n", e->algoritmo, e->tamanoLista, e->tiempo, e->comparaciones, e->correcto?"ERROR":"OK");
-  free(e);
 
   copiaLista(listaOrig, listaCopia, tamanoLista);
-  e = ejecutaBubbleSort(listaCopia, tamanoLista);
-  if(e == NULL){
+  if(ejecutaBubbleSort(listaCopia, tamanoLista, &ejs[1])){
     free(listaOrig);
     free(listaCopia);
     printf("Error ejecutando bubblesort.\n");
-    return NULL;
+    return -1;
   }
-  printf("%15s: %10d %20ldns %20ld comp. %s\n", e->algoritmo, e->tamanoLista, e->tiempo, e->comparaciones, e->correcto?"ERROR":"OK");
-  ejs[1] = *e;
-  free(e);
+  
 
   copiaLista(listaOrig, listaCopia, tamanoLista);
-  e = ejecutaInsertionSort(listaCopia, tamanoLista);
-  if(e == NULL){
+  if(ejecutaInsertionSort(listaCopia, tamanoLista, &ejs[2])){
     free(listaOrig);
     free(listaCopia);
     printf("Error ejecutando bubblesort.\n");
-    return NULL;
+    return -1;
   }
-  printf("%15s: %10d %20ldns %20ld comp. %s\n", e->algoritmo, e->tamanoLista, e->tiempo, e->comparaciones, e->correcto?"ERROR":"OK");
-  ejs[1] = *e;
-  free(e);
-
- 
-
   free(listaOrig);
   free(listaCopia);
 
-  return ejs;
+  return 0;
 }
 
-Ejecucion *ejecutaMergeSort(int *lista, int tam){
+int ejecutaMergeSort(int *lista, int tam, Ejecucion *ejecucion){
 
   struct timespec tstart={0,0}, tend={0,0};
   long comparaciones;
-  Ejecucion *ejecucion;
 
   clock_gettime(CLOCK_MONOTONIC, &tstart);
   comparaciones = mergeSort(lista, tam);
@@ -111,13 +80,7 @@ Ejecucion *ejecutaMergeSort(int *lista, int tam){
 
   if(comparaciones == -1){
     printf("Error mergesort.\n");
-    return NULL;
-  }
-
-  ejecucion = (Ejecucion *) malloc(sizeof(Ejecucion));
-  if(ejecucion == NULL){
-    printf("Error alojando ejecucion.\n");
-    return NULL;
+    return -1;
   }
 
   ejecucion->algoritmo = "Merge sort";
@@ -125,14 +88,13 @@ Ejecucion *ejecutaMergeSort(int *lista, int tam){
   ejecucion->comparaciones = comparaciones;
   ejecucion->tiempo = (tend.tv_sec * 1000000000 + tend.tv_nsec) - (tstart.tv_sec * 1000000000 + tstart.tv_nsec);
   ejecucion->correcto = comprobarLista(lista, tam);
-  return ejecucion;
+  return 0;
 }
 
-Ejecucion *ejecutaBubbleSort(int *lista, int tam){;
+int ejecutaBubbleSort(int *lista, int tam, Ejecucion *ejecucion){;
 
   struct timespec tstart={0,0}, tend={0,0};
   long comparaciones;
-  Ejecucion *ejecucion;
 
   clock_gettime(CLOCK_MONOTONIC, &tstart);
   comparaciones = bubbleSort(lista, tam);
@@ -140,13 +102,7 @@ Ejecucion *ejecutaBubbleSort(int *lista, int tam){;
 
   if(comparaciones == -1){
     printf("Error bubblesort.\n");
-    return NULL;
-  }
-
-  ejecucion = (Ejecucion *) malloc(sizeof(Ejecucion));
-  if(ejecucion == NULL){
-    printf("Error alojando ejecucion.\n");
-    return NULL;
+    return -1;
   }
 
   ejecucion->algoritmo = "Bubble sort";
@@ -154,15 +110,14 @@ Ejecucion *ejecutaBubbleSort(int *lista, int tam){;
   ejecucion->comparaciones = comparaciones;
   ejecucion->tiempo = (tend.tv_sec * 1000000000 + tend.tv_nsec) - (tstart.tv_sec * 1000000000 + tstart.tv_nsec);
   ejecucion->correcto = comprobarLista(lista, tam);
-  return ejecucion;
+  return 0;
 
 }
 
-Ejecucion *ejecutaInsertionSort(int *lista, int tam){;
+int ejecutaInsertionSort(int *lista, int tam, Ejecucion *ejecucion){;
 
   struct timespec tstart={0,0}, tend={0,0};
   long comparaciones;
-  Ejecucion *ejecucion;
 
   clock_gettime(CLOCK_MONOTONIC, &tstart);
   comparaciones = insertionSort(lista, tam);
@@ -170,13 +125,7 @@ Ejecucion *ejecutaInsertionSort(int *lista, int tam){;
 
   if(comparaciones == -1){
     printf("Error insertion.\n");
-    return NULL;
-  }
-
-  ejecucion = (Ejecucion *) malloc(sizeof(Ejecucion));
-  if(ejecucion == NULL){
-    printf("Error alojando ejecucion.\n");
-    return NULL;
+    return -1;
   }
 
   ejecucion->algoritmo = "Insertion sort";
@@ -184,59 +133,8 @@ Ejecucion *ejecutaInsertionSort(int *lista, int tam){;
   ejecucion->comparaciones = comparaciones;
   ejecucion->tiempo = (tend.tv_sec * 1000000000 + tend.tv_nsec) - (tstart.tv_sec * 1000000000 + tstart.tv_nsec);
   ejecucion->correcto = comprobarLista(lista, tam);
-  return ejecucion;
-
-}
-
-int *generaLista(int n){
-
-  int *lista;
-  int i;
-  
-  lista = (int *) malloc(sizeof(int) * n);
-  if(lista == NULL){
-    return NULL;
-  }
-  
-  for(i = 0; i<n; i++){
-    lista[i] = rand() % n;
-  }
-  
-  return lista;
-  
-}
-
-void copiaLista(int *lista1, int *lista2, int tam){
-  
-  int i;
-  
-  for(i=0;i<tam;i++){
-    lista2[i] = lista1[i];
-  }
-  
-  return;
-}
-
-int comprobarLista(int *lista, int tam){
-  int i;
-
-  for(i = 1;i<tam; i++){
-    if(lista[i-1] > lista[i]){
-      return -1;
-    }
-  }
-
   return 0;
-}
-
-void *reservarMemoria(int tamano){
 
 }
 
-void swap(Lista lista, int *n1, int *n2){
 
-}
-
-int getElemento(Lista lista, int n){
-
-}

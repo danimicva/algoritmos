@@ -1,49 +1,67 @@
 #include "lista.h"
 
-Lista *crearLista(int tamano){
-  Lista *l;
+int *generaLista(int tamano){
 
-  l = (Lista *)malloc(sizeof(Lista));
-  if(!l){
+  int *lista;
+  
+  lista = (int *) malloc(sizeof(int) * tamano);
+  if(lista == NULL){
     return NULL;
   }
-
-  l->lista = (int *) malloc(sizeof(int) * tamano);
-  if(!l->lista){
-    return NULL;
+  
+  for(int i = 0; i < tamano; i++){
+    lista[i] = rand() % tamano;
   }
-
-  l->tamano = tamano;
-
-  return l;
+  
+  return lista;
+  
 }
 
-void liberarLista(Lista *l){
-  free(l->lista);
+void liberarLista(int *l){
   free(l);
 }
 
-int getTamano(Lista lista){
-  return lista.tamano;
+int getElemento(int *lista, int n){
+  return lista[n];
 }
 
-int getElemento(Lista lista, int n){
-  return lista.lista[n];
+void setElemento(int *lista, int pos,  int dato){
+  lista[pos] = dato;
 }
 
-int setElemento(Lista lista, int pos,  int dato){
-  lista.lista[pos] = dato;
-}
-
-void imprimeLista(Lista lista){
-
-  int i;
+void imprimeLista(int *lista, int n){
 
   printf("Lista: \n");
-  printf("Tamaño: %d\n", getTamano(lista));
+  printf("Tamaño: %d\n", n);
   printf("Elementos: \n");
 
-  for(i = 0;i<getTamano(lista); i++){
-    printf(" - %d\n", getElemento(lista, i));
+  for(int i = 0; i < n; i++){
+    printf(" - %d\n", lista[i]);
   }
+}
+
+void copiaLista(int *lista1, int *lista2, int n){
+  
+  for(int i=0; i < n; i++){
+    lista2[i] = lista1[i];
+  }
+  
+  return;
+}
+
+int comprobarLista(int *lista, int tam){
+
+  for(int i = 1; i < tam; i++){
+    if(lista[i - 1] > lista[i]){
+      return -1;
+    }
+  }
+
+  return 0;
+}
+
+void swap(int *lista, int pos1, int pos2){
+  int temp = lista[pos1];
+  lista[pos1] = lista[pos2];
+  lista[pos2] = temp;
 }
