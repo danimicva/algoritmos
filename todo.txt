@@ -1,7 +1,7 @@
 en algoritmos de ordenación, estandarizar:
 - Por parámetro indicar:
   - Número de elementos en la lista
-  - Número de veces que se va a repetir el algoritmo (python timeit)
+  - Número de veces que se va a repetir el algoritmo (usar siempre las mismas listas entre ellos, habrá que cambiarlo a un objeto complejo)
   - Qué algoritmo se ejecuta
   - Si se comprueba la lista o no
 

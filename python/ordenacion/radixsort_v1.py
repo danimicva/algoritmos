@@ -33,7 +33,6 @@ def radixsort_v1_int(lista, idx, width):
         elif(tmp[idx] == '9'):
             dic[9].append(lista[i])
 
-    
     L0 = radixsort_v1_int(dic[0], idx + 1, width) if len(dic[0]) > 0 else []
     L1 = radixsort_v1_int(dic[1], idx + 1, width) if len(dic[1]) > 0 else []
     L2 = radixsort_v1_int(dic[2], idx + 1, width) if len(dic[2]) > 0 else []
