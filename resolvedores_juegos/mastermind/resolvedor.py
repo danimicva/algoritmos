@@ -7,11 +7,13 @@ from gestor_ejecuciones import EjecucionPartidas
 from resolvedores import (ResolvedorAleatorio, 
                           ResolvedorBase, 
                           ResolvedorFuerzaBruta, 
-                          ResolvedorFuerzaBrutaMejorado, ResolvedorInteligente2Mejorado, 
+                          ResolvedorFuerzaBrutaMejorado, 
                           ResolvedorPermutaciones, 
                           ResolvedorPermutacionesMejorado,
                           ResolvedorInteligente1,
-                          ResolvedorInteligente1Mejorado)
+                          ResolvedorInteligente1Mejorado,
+                          ResolvedorInteligente2Mejorado,
+                          ResolvedorInteligente3Mejorado)
 
 
 def generar_objetivos_aleatorio(n_objetivos, caracteres, dificultad):
@@ -51,6 +53,7 @@ parser.add_argument("dificultad", help="El número de caracteres que tendrá la 
 parser.add_argument("max_intentos", help="Número máximo de intentos para resolver", type=int)
 parser.add_argument("n_partidas", help="El número partidas que se harán.", type=int)
 parser.add_argument("--salida", help="Fichero donde guardar la salida detallada de ejecución", required=False)
+parser.add_argument("--partida", help="Partida concreta a resolver", type=str, required=False)
 args = parser.parse_args()
 
 logger = None
@@ -66,16 +69,18 @@ resolvedores: List[ResolvedorBase] = [
     # ResolvedorFuerzaBrutaMejorado,
     # ResolvedorPermutaciones,
     # ResolvedorPermutacionesMejorado,
-    ResolvedorInteligente1,
-    ResolvedorInteligente1Mejorado,
-    # ResolvedorInteligente2Mejorado
+    # ResolvedorInteligente1,
+    # ResolvedorInteligente1Mejorado,
+    ResolvedorInteligente2Mejorado,
+    ResolvedorInteligente3Mejorado,
     ]
 
 objetivos = []
-if args.n_partidas == -1:
+if args.partida:
+    objetivos = [args.partida]
+elif args.n_partidas == -1:
     objetivos = generar_todos_objetivos(args.caracteres, args.dificultad)
 else:
-    
     objetivos = generar_objetivos_aleatorio(args.n_partidas, args.caracteres, args.dificultad)
 
 ejecucion = EjecucionPartidas(objetivos, args.caracteres, resolvedores, args.max_intentos, logger=logger)

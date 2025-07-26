@@ -74,6 +74,8 @@ class Mastermind:
             self.estado = Estado.FIN
         elif self.max_intentos > 0 and len(self.intentos) >= self.max_intentos:
             raise MaxIntentosException("Máximo número de intentos realizados")
+
+        return self.intentos[-1].buena_posicion, self.intentos[-1].mala_posicion
         
 
     def imprimir_partida(self, mostrar_objetivo=False):

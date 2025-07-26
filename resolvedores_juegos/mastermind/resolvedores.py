@@ -18,13 +18,16 @@ class ResolvedorBase(ABC):
             self._resolver_partida()
         except MaxIntentosException:
             pass
+        except Exception as ex:
+            print(f"Excepción en partida: {self._partida._objetivo}")
+            raise ex from ex
     
     @abstractmethod
     def _resolver_partida(self):
         pass
     
     def _realizar_intento(self, intento, fase=None):
-        self._partida.realizar_intento(intento, fase)
+        return self._partida.realizar_intento(intento, fase)
 
 class ResolvedorAleatorio(ResolvedorBase):
 
@@ -281,56 +284,6 @@ class ResolvedorInteligente1Mejorado(ResolvedorInteligente1):
       Mejoras: No busca soluciones en posiciones donde ya está encontrada la solución.
       Mejora la búsqueda de caracteres iniciales
       """
-    
-    def _encontrar_caracteres_presentes(self):
-        # Obtenemos los caracteres de la solución y su cantidad
-        caracter_no_presente = None
-        caracteres_solucion = []
-        n_caracteres_solucion = 0
-
-        candidatos_posibles = []
-
-        candidatos_con_quiza_mas = []
-
-        # for c in self._partida.caracteres:
-        for i in range(len(self._partida.caracteres) // 2):
-        # TODO mejorar para dificultad N y número de caracteres impar
-            c1 = self._partida.caracteres[2*i]
-            c2 = self._partida.caracteres[2*i + 1]
-            intento = c1*3 + c2*2
-            self._realizar_intento(intento, "Encontrar caracteres")
-            
-            disponibles = self._partida.intentos[-1].buena_posicion + self._partida.intentos[-1].mala_posicion
-            if disponibles > 0:
-                candidatos_posibles.append([c1, c2, disponibles])
-            else:
-                caracter_no_presente = c1
-            n_caracteres_solucion += self._partida.intentos[-1].buena_posicion + self._partida.intentos[-1].mala_posicion
-            if n_caracteres_solucion == self._partida.dificultad:
-                break
-
-        # Ahora tenemos los caracteres, por parejas, que pueden estar o no
-        # Vamos probando por cada uno para sacar cuántos hay.
-        for cp in candidatos_posibles:
-            intento = cp[0] * self._partida.dificultad
-            self._realizar_intento(intento, "Encontrar_caracteres")
-            disponibles = self._partida.intentos[-1].buena_posicion
-            # si no hay, es que todos eran del segundo
-            if disponibles == 0:
-                caracteres_solucion.append([c2, cp[2]])
-            # si hay los mismos que vimos antes, es que todso eran del 1
-            elif disponibles == cp[2]:
-                caracteres_solucion.append([c1, cp[2]])
-            # Si no, es que hay mezcla:
-            else: (me tengo que ir, añadir con c1 disponible veces y c2 disponible menos cp[2] veces)
-            
-
-        # Si no se ha encontrado un no presente, es que los presentes han sido los primeros en salir, así que el último no estará nunca.
-        if not caracter_no_presente:
-            caracter_no_presente = self._partida.caracteres[-1]
-
-        return caracteres_solucion, caracter_no_presente
-
     def _iniciar_posiciones_caracter(self, cantidad, solucion_final):
 
         posiciones = []
@@ -363,3 +316,129 @@ class ResolvedorInteligente1Mejorado(ResolvedorInteligente1):
             else:
                 # Si la posición actual no supera el valor máximo, salimos de este bucle para volver a intentarlo
                 return posiciones
+
+
+
+class ResolvedorInteligente2Mejorado(ResolvedorInteligente1Mejorado):
+    """     
+      Mejoras: Busca los caracteres de dos en dos
+      """
+    
+    def _encontrar_caracteres_presentes(self):
+
+        candidatos_posibles, caracter_no_presente = self._obtener_parejas_candidatos()
+
+        caracteres_solucion, caracter_no_presente = self._obtener_caracteres_presentes(candidatos_posibles, caracter_no_presente)
+
+        # Si no se ha encontrado un no presente, es que los presentes han sido los primeros en salir, así que el último no estará nunca.
+        if not caracter_no_presente:
+            caracter_no_presente = self._partida.caracteres[-1]
+
+        return caracteres_solucion, caracter_no_presente
+
+    def _obtener_parejas_candidatos(self):
+        
+        candidatos_posibles = []
+        n_caracteres_solucion = 0
+        caracter_no_presente = None
+
+        # Primero buscamos los caracteres por parejas para ahorrarnos búsquedas.
+        for i in range(len(self._partida.caracteres) // 2):
+        # TODO mejorar para dificultad N y número de caracteres impar
+            c1 = self._partida.caracteres[2*i]
+            c2 = self._partida.caracteres[2*i + 1]
+            intento = c1*3 + c2*2
+            buenos, malos = self._realizar_intento(intento, "Encontrar caracteres")
+            
+            if buenos + malos > 0:
+                candidatos_posibles.append([c1, c2, buenos + malos])
+            else:
+                caracter_no_presente = c1
+            n_caracteres_solucion += buenos + malos
+            if n_caracteres_solucion == self._partida.dificultad:
+                break
+
+        return candidatos_posibles, caracter_no_presente
+
+    def _obtener_caracteres_presentes(self, candidatos_posibles, caracter_no_presente):
+        caracteres_solucion = []
+        candidatos_con_quiza_mas = []
+        # Ahora tenemos los caracteres, por parejas, que pueden estar o no
+        # Vamos probando por cada uno para sacar cuántos hay.
+        for cp in candidatos_posibles:
+            intento = cp[0] * self._partida.dificultad
+            buenos, malos = self._realizar_intento(intento, "Encontrar caracteres")
+            # si no hay, es que todos eran del segundo
+            if buenos == 0:
+                caracteres_solucion.append([cp[1], cp[2]])
+                if not caracter_no_presente:
+                    caracter_no_presente = cp[0]
+            # si hay los mismos que vimos antes, es que todso eran del 1
+            elif buenos == cp[2]:
+                caracteres_solucion.append([cp[0], cp[2]])
+                if not caracter_no_presente and cp[2] < 3:
+                    caracter_no_presente = cp[1]
+            # Si no, es que hay mezcla:
+            else: #(me tengo que ir, añadir con c1 disponible veces y c2 disponible menos cp[2] veces)
+                caracteres_solucion.append([cp[0], buenos])
+                if buenos < cp[2]:
+                    caracteres_solucion.append([cp[1], cp[2] - buenos])
+            
+            # Si se han obtenido 3 o más con el primer caracter puede que haya algunos del segundo caracter ocultos (caso SAAAA)
+            if buenos >= 3:
+                candidatos_con_quiza_mas.append([cp[1], 0])
+            # Si se han obtenido 0 con el primer caracter y había 2 o más resultados, puede que haya más resultados del segundo ocultos
+            elif cp[2] - buenos >= 2: 
+                candidatos_con_quiza_mas.append([cp[1], cp[2] - buenos])
+
+        # Para el caso que no hayamos encontrado todos, temeos que revisar los que quizá tengan más
+        if sum(cs[1] for cs in caracteres_solucion) < self._partida.dificultad:
+                for i in range(len(candidatos_con_quiza_mas)):
+                    saltar, caracteres_solucion = self._mejora3(caracteres_solucion, candidatos_con_quiza_mas, i)
+                    if saltar:
+                        break
+
+                    cqm = candidatos_con_quiza_mas[i]
+
+                    intento = cqm[0] * self._partida.dificultad
+                    buenos, malos = self._realizar_intento(intento, "Encontrar caracteres")
+                    
+                    # Si volviendo a consultar obtenemos más que antes, tenemos que incluir o sobreescribir el valor y ver si ya tenemos todo.
+                    if buenos > cqm[1]:
+                        caracteres_solucion = self._aplicar_nuevo_caracter(caracteres_solucion, cqm[0], buenos)
+
+                        if sum(cs[1] for cs in caracteres_solucion) == self._partida.dificultad:
+                            break
+
+        return caracteres_solucion, caracter_no_presente
+
+    def _aplicar_nuevo_caracter(self, caracteres_solucion, caracter, cantidad):
+        if not any(cs[0] == caracter for cs in caracteres_solucion):
+            caracteres_solucion.append([caracter, cantidad])
+        else:
+            for cs in caracteres_solucion:
+                if cs[0] == caracter:
+                    cs[1] = cantidad
+                    break
+        return caracteres_solucion
+
+    def _mejora3(self, caracteres_solucion, caracteres_con_quiza_mas, i):
+        return False, caracteres_solucion
+
+class ResolvedorInteligente3Mejorado(ResolvedorInteligente2Mejorado):
+    def _mejora3(self, caracteres_solucion, caracteres_con_quiza_mas, i):
+        # si estamos en la última vuelta de los caracteres con quizá más, el resto de caracteres deben ser este.
+        if i == len(caracteres_con_quiza_mas) - 1:
+            caracteres_solucion = self._aplicar_nuevo_caracter(caracteres_solucion, 
+                                                               caracteres_con_quiza_mas[i][0], 
+                                                               self._partida.dificultad - sum(cs[1] for cs in caracteres_solucion if cs[0] != caracteres_con_quiza_mas[i][0]))
+            return True, caracteres_solucion
+
+        return False, caracteres_solucion
+
+
+# Nivel 3 de mejora: Inducir casos que no sea necesario probar. Por ejemplo, si estoy buscando caracteres y me queda sólo uno por mirar, 
+# no es necesario mirarlo, por descarte tiene que ser. Aplicarlo en:
+#  - Al buscar caracteres inicialmente (en la última pareja, sólo basta con mirar el primer caracter, el segundo se deduce)
+#  - (Hecho) Al revisar los posibles caracteres de más, si solo queda uno en la lista, debe ser ese 
+#  - Al buscar la solución, si solo queda un caracter posible, ese debe rellenar los huecos
