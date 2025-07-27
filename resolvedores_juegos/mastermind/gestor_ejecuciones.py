@@ -25,7 +25,7 @@ class EjecucionPartidas():
         self.partidas_no_resueltas: List[PartidaTiempo] = []
         self._logger = logger
         
-    def ejecutar_partidas(self):
+    def ejecutar_partidas(self, interactivo=False):
         for tipo_resolvedor in self.resolvedores:
             for o in self.objetivos:
                 m = Mastermind(o, self.caracteres, self.max_intentos)
@@ -52,6 +52,10 @@ class EjecucionPartidas():
                                       o,
                                       m.estado == Estado.FIN,
                                       fases_intentos)
+                if interactivo:
+                    m.imprimir_partida(True)
+                    input()
+
     
     def _generar_estadisticas_valores(self, valores):
         if len(valores) == 0: 

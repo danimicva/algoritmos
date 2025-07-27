@@ -1,4 +1,5 @@
 from enum import Enum
+import random
 from typing import List
 
 class MaxIntentosException(Exception):
@@ -88,3 +89,33 @@ class Mastermind:
             print(f"| {i + 1}: {self.intentos[i]}")
         print()
     
+    
+    def generar_objetivos_aleatorio(n_objetivos, caracteres, dificultad):
+        ret = []
+        for _ in range(n_objetivos):
+            ret.append(''.join([caracteres[random.randint(0, len(caracteres)-1)] for _ in range(dificultad)]))
+        
+        return ret
+
+    def generar_todos_objetivos(caracteres, dificultad):
+        
+        cifras = dificultad
+        base = len(caracteres)
+
+        if base == 1:
+            return caracteres[0]*cifras
+        
+        ret = []
+        for i in range(pow(base, cifras)):
+
+            intento = []
+
+            valor = i
+
+            for _ in range(cifras):
+                intento.append(caracteres[valor % base])
+                valor = valor // base
+
+            ret.append(''.join(intento))
+        
+        return ret
